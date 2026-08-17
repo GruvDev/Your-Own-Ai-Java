@@ -1,0 +1,30 @@
+SemanticDocs vector index benchmark
+vectors=20000  dim=128  queries=200  k=10  metric=COSINE  M=16  efConstruction=200
+
+CLUSTERED (realistic - like text embeddings)
+============================================
+index                   build(ms) recall@10   p50(ms)   p95(ms)   speedup
+--------------------------------------------------------------------------
+BruteForce (exact)            160     1.000     2.452     6.751      1.0x
+HNSW ef=16                  16167     0.940     0.162     0.927     15.1x
+HNSW ef=32                            0.993     0.214     2.270     11.5x
+HNSW ef=64                            1.000     0.311     4.407      7.9x
+HNSW ef=128                           1.000     0.297     3.933      8.3x
+graph: 20000 nodes, 521290 edges, top layer 3, ~11.8 MB in memory
+
+UNIFORM RANDOM (worst case - no structure to exploit)
+=====================================================
+index                   build(ms) recall@10   p50(ms)   p95(ms)   speedup
+--------------------------------------------------------------------------
+BruteForce (exact)             22     1.000     2.429     2.892      1.0x
+HNSW ef=16                  32252     0.194     0.200     0.307     12.2x
+HNSW ef=32                            0.327     0.348     0.476      7.0x
+HNSW ef=64                            0.509     0.579     0.688      4.2x
+HNSW ef=128                           0.710     1.015     1.347      2.4x
+graph: 20000 nodes, 533987 edges, top layer 3, ~11.8 MB in memory
+
+CORRECTNESS CHECKS
+==================
+delete    : tombstoned 2042, still returned? false, result count 10
+persist   : 12.06 MB on disk, identical results after reload? true
+normalise : |v| after normalisation = 1.000000

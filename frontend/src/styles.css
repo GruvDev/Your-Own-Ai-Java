@@ -1,0 +1,482 @@
+/* ============================================================================
+   SemanticDocs design tokens.
+
+   The visual idea is a library card catalogue: every result carries a mono
+   "call number", relevance is drawn as discrete ticks like a ruler on a spine
+   label, and the index statistics stay visible so the data structure the whole
+   project is built on is never hidden from the user.
+   ========================================================================== */
+
+:root {
+  --ink: #17191f;
+  --ink-soft: #575d6b;
+  --ink-faint: #8b91a0;
+
+  --page: #edeff3;
+  --surface: #ffffff;
+  --surface-sunken: #f6f7fa;
+
+  --accent: #3d34e0;
+  --accent-hover: #2f27bd;
+  --accent-wash: #e9e7fc;
+  --on-accent: #ffffff;
+
+  --positive: #157a55;
+  --positive-wash: #e2f2ec;
+  --warn: #a85b00;
+  --warn-wash: #fdefdd;
+  --danger: #c22b36;
+  --danger-wash: #fbe7e8;
+
+  --rule: #d5d9e2;
+  --rule-strong: #b9bfcc;
+
+  --display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --body: 'Public Sans', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 2px rgba(23, 25, 31, 0.06), 0 8px 24px rgba(23, 25, 31, 0.06);
+
+  color-scheme: light;
+}
+
+/* Dark theme.
+
+   Every colour the app uses is a variable, so the whole theme is this one block - no
+   component knows which theme is active. The dark palette is a warm near-black rather
+   than pure #000: true black against light text produces uncomfortable halation, and
+   real surfaces need to be distinguishable from the page behind them.
+
+   The accent is lifted and desaturated, because a colour tuned for contrast against
+   white is too dark to read against a dark background. */
+[data-theme='dark'] {
+  --ink: #e8eaf0;
+  --ink-soft: #a2a9b8;
+  --ink-faint: #737b8c;
+
+  --page: #14161b;
+  --surface: #1c1f26;
+  --surface-sunken: #23262f;
+
+  --accent: #8b83ff;
+  --accent-hover: #a49dff;
+  --accent-wash: #2a2748;
+  --on-accent: #14161b;
+
+  --positive: #4ec99a;
+  --positive-wash: #1a3830;
+  --warn: #e0a253;
+  --warn-wash: #3a2c17;
+  --danger: #f2727e;
+  --danger-wash: #3d1f24;
+
+  --rule: #2e323c;
+  --rule-strong: #434955;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+button, input, textarea, select { font: inherit; color: inherit; }
+
+/* ---------------------------------------------------------------- shell */
+
+.shell { display: flex; flex-direction: column; min-height: 100%; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 14px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+/* The mark is a stack of three lines: the layers of the HNSW graph. */
+.brand-mark {
+  display: grid;
+  gap: 3px;
+  width: 20px;
+}
+.brand-mark span {
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+  display: block;
+}
+.brand-mark span:nth-child(1) { width: 40%; }
+.brand-mark span:nth-child(2) { width: 70%; }
+.brand-mark span:nth-child(3) { width: 100%; }
+
+.tabs { display: flex; gap: 4px; margin-left: 8px; }
+
+.tab {
+  border: none;
+  background: none;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-weight: 500;
+}
+.tab:hover { background: var(--surface-sunken); color: var(--ink); }
+.tab[aria-selected='true'] { background: var(--accent-wash); color: var(--accent); font-weight: 600; }
+
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+/* Theme toggle. Square, icon-only, no label - it sits next to a text button and two
+   competing labels in the corner is noise. */
+.theme-toggle {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+.theme-toggle:hover { background: var(--surface-sunken); color: var(--ink); }
+.theme-toggle svg { width: 17px; height: 17px; }
+
+body, .card, .topbar, .doc-row, .result, .bubble.assistant, .source, .dropzone {
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+/* The index stats strip: the signature element. Always visible, always mono. */
+.index-strip {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 14px;
+  border-left: 1px solid var(--rule);
+  padding-left: 16px;
+}
+.index-strip b { color: var(--ink); font-weight: 500; }
+
+.main { flex: 1; width: 100%; max-width: 1080px; margin: 0 auto; padding: 32px 28px 72px; min-width: 0; }
+
+.page-head { margin-bottom: 22px; }
+.page-head h1 { font-size: 28px; }
+.page-head p { color: var(--ink-soft); margin: 6px 0 0; max-width: 60ch; }
+
+/* ---------------------------------------------------------------- controls */
+
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.field label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+
+input[type='text'], input[type='email'], input[type='password'], textarea, select {
+  padding: 10px 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  outline: none;
+  width: 100%;
+}
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-wash);
+}
+
+.btn {
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.btn:hover:not(:disabled) { background: var(--accent-hover); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--ink-soft); border-color: var(--rule-strong); }
+.btn.ghost:hover:not(:disabled) { background: var(--surface-sunken); color: var(--ink); }
+.btn.danger { background: transparent; color: var(--danger); border-color: transparent; padding: 6px 8px; }
+.btn.danger:hover:not(:disabled) { background: var(--danger-wash); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------- cards */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+
+.stack { display: flex; flex-direction: column; gap: 12px; }
+
+.auth-wrap { max-width: 380px; margin: 8vh auto; }
+.auth-wrap .card { box-shadow: var(--shadow); }
+.auth-switch { text-align: center; margin-top: 14px; font-size: 14px; color: var(--ink-soft); }
+.linkish { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: 600; padding: 0; }
+
+/* ---------------------------------------------------------------- library */
+
+.dropzone {
+  border: 1.5px dashed var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 30px;
+  text-align: center;
+  color: var(--ink-soft);
+  transition: border-color 120ms ease, background 120ms ease;
+  cursor: pointer;
+}
+.dropzone.dragging { border-color: var(--accent); background: var(--accent-wash); color: var(--accent); }
+.dropzone strong { color: var(--ink); font-family: var(--display); font-size: 17px; }
+
+.doc-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.doc-name { font-weight: 600; }
+.doc-meta { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); margin-top: 2px; }
+.doc-grow { flex: 1; min-width: 0; }
+.doc-name, .doc-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+.pill.ready { background: var(--positive-wash); color: var(--positive); }
+.pill.processing, .pill.pending { background: var(--warn-wash); color: var(--warn); }
+.pill.failed { background: var(--danger-wash); color: var(--danger); }
+
+/* ---------------------------------------------------------------- results */
+
+.searchbar { display: flex; gap: 10px; margin-bottom: 8px; }
+.searchbar input { flex: 1; }
+
+.result-meta {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin: 14px 0 10px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.result {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.result:hover { border-color: var(--rule-strong); }
+
+/* The call number: the signature detail on every result. */
+.callno {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.callno .file { color: var(--accent); font-weight: 500; }
+.callno .sep { color: var(--rule-strong); }
+
+/* Relevance drawn as ten discrete ticks rather than a smooth bar: it reads as a
+   measurement, which is what a similarity score actually is. */
+.ticks { display: flex; gap: 2px; margin-left: auto; align-items: center; }
+.ticks i { width: 3px; height: 11px; background: var(--rule); border-radius: 1px; display: block; }
+.ticks i.on { background: var(--accent); }
+.ticks .value { font-family: var(--mono); font-size: 11.5px; color: var(--ink-soft); margin-left: 7px; }
+
+.snippet { color: var(--ink); margin: 0; }
+.snippet mark { background: var(--accent-wash); color: var(--accent); padding: 0 2px; border-radius: 3px; }
+
+.empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--ink-soft);
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.empty strong { display: block; font-family: var(--display); font-size: 17px; color: var(--ink); margin-bottom: 6px; }
+
+/* ---------------------------------------------------------------- chat */
+
+.thread { display: flex; flex-direction: column; gap: 18px; margin-bottom: 24px; min-width: 0; }
+
+.bubble { max-width: 90%; min-width: 0; overflow-wrap: anywhere; }
+.bubble.user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: 11px 15px;
+  border-radius: var(--radius) var(--radius) 2px var(--radius);
+}
+.bubble.assistant {
+  min-width: 0;
+  align-self: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius) var(--radius) var(--radius) 2px;
+  padding: 15px 17px;
+  width: 100%;
+}
+/* pre-wrap keeps the model's paragraph breaks. overflow-wrap stops a long unbroken
+   run - a URL, or a glitched stream - from forcing the whole page to scroll sideways. */
+.answer {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+
+/* Inline [1] markers the model emits, turned into clickable chips. */
+.citemark {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--accent-wash);
+  color: var(--accent);
+  border: none;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin: 0 1px;
+  cursor: pointer;
+  vertical-align: 2px;
+}
+.citemark:hover { background: var(--accent); color: var(--on-accent); }
+
+.sources { margin-top: 14px; border-top: 1px solid var(--rule); padding-top: 12px; }
+.sources h4 {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  margin: 0 0 8px;
+  font-weight: 500;
+}
+.source {
+  display: flex;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  margin-bottom: 6px;
+}
+.source.highlight { outline: 2px solid var(--accent); }
+.source-num { font-family: var(--mono); font-size: 12px; color: var(--accent); flex-shrink: 0; }
+.source-text { font-size: 13.5px; color: var(--ink-soft); overflow-wrap: anywhere; min-width: 0; }
+.source-file { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); display: block; margin-top: 3px; }
+
+.caret { display: inline-block; width: 7px; height: 1.05em; background: var(--accent); vertical-align: -2px; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+.composer { display: flex; gap: 10px; position: sticky; bottom: 0; padding: 14px 0; background: linear-gradient(to top, var(--page) 70%, transparent); }
+.composer textarea { flex: 1; resize: none; min-height: 46px; max-height: 160px; }
+
+.banner { padding: 11px 14px; border-radius: var(--radius-sm); font-size: 14px; margin-bottom: 14px; }
+.banner.error { background: var(--danger-wash); color: var(--danger); }
+.banner.info { background: var(--accent-wash); color: var(--accent); }
+
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.spacer { flex: 1; }
+.muted { color: var(--ink-soft); }
+.mono { font-family: var(--mono); font-size: 12px; }
+
+
+/* The highlight inside snippets needs a touch more presence on a dark surface. */
+[data-theme='dark'] .snippet mark {
+  background: #322c66;
+  color: #cfc9ff;
+}
+
+/* The dashed dropzone reads as noise on dark unless it is filled slightly. */
+[data-theme='dark'] .dropzone { background: var(--surface); }
+[data-theme='dark'] .empty { background: var(--surface); }
+
+/* ---------------------------------------------------------------- theme toggle */
+
+.theme-toggle {
+  border: 1px solid var(--rule-strong);
+  background: transparent;
+  color: var(--ink-soft);
+  border-radius: var(--radius-sm);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 120ms ease, color 120ms ease;
+}
+.theme-toggle:hover { background: var(--surface-sunken); color: var(--ink); }
+.theme-toggle svg { width: 17px; height: 17px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* The composer gradient has to follow the theme too, or it shows as a pale smear
+   over the dark page. */
+.composer {
+  background: linear-gradient(to top, var(--page) 70%, transparent);
+}
+
+@media (max-width: 720px) {
+  .main { padding: 20px 16px 60px; }
+  .index-strip { display: none; }
+  .searchbar { flex-direction: column; }
+  .bubble { max-width: 100%; }
+}

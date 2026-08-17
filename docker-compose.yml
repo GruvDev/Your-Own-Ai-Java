@@ -1,0 +1,39 @@
+# Everything the backend needs, except Ollama (which runs natively so it can use your GPU).
+#
+#   docker compose up -d
+#   cd backend && mvn spring-boot:run
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: semanticdocs-postgres
+    environment:
+      POSTGRES_DB: semanticdocs
+      POSTGRES_USER: semanticdocs
+      POSTGRES_PASSWORD: semanticdocs
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U semanticdocs"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: semanticdocs-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:
+  redis-data:

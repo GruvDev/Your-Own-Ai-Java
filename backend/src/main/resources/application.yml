@@ -1,0 +1,100 @@
+spring:
+  application:
+    name: semanticdocs
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:semanticdocs}
+    username: ${DB_USER:semanticdocs}
+    password: ${DB_PASSWORD:semanticdocs}
+
+  jpa:
+    hibernate:
+      # Flyway owns the schema. Hibernate only validates that entities match it.
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 10m
+
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
+
+server:
+  port: 8080
+
+semanticdocs:
+  jwt:
+    # Override in production. Must be at least 32 bytes for HS256.
+    secret: ${JWT_SECRET:change-me-this-is-a-development-only-secret-key-32b}
+    expiry-minutes: 120
+
+  storage:
+    # Where uploaded files and the serialised index live
+    upload-dir: ${UPLOAD_DIR:./data/uploads}
+    index-file: ${INDEX_FILE:./data/index/hnsw.bin}
+
+  chunking:
+    # Characters, not tokens: simpler and good enough. Roughly 512 tokens.
+    size: 1800
+    overlap: 250
+
+  index:
+    m: 16
+    ef-construction: 200
+    ef-search: 64
+    # Rebuild from the database instead of loading the file (useful after a format change)
+    rebuild-on-start: false
+
+  embedding:
+    provider: ollama
+    model: nomic-embed-text
+    dimension: 768
+    batch-size: 16
+    # nomic-embed-text was trained with these literal task prefixes. Omitting them
+    # compresses every similarity into a narrow band, so relevant and irrelevant passages
+    # score almost the same. Set both to "" for a model that does not use them
+    # (all-minilm, OpenAI). Changing these requires re-indexing every document.
+    document-prefix: "search_document: "
+    query-prefix: "search_query: "
+
+  search:
+    # Passages below this cosine similarity are discarded. Raise it if weakly related
+    # passages are reaching answers; lower it if valid questions return nothing.
+    min-score: 0.55
+
+  llm:
+    # ollama = local and free. openai = hosted, needs an API key.
+    provider: ${LLM_PROVIDER:ollama}
+    model: ${LLM_MODEL:llama3.2:3b}
+    temperature: 0.2
+    max-context-chunks: 6
+
+  ollama:
+    base-url: ${OLLAMA_URL:http://localhost:11434}
+    timeout-seconds: 120
+
+  openai:
+    base-url: https://api.openai.com/v1
+    api-key: ${OPENAI_API_KEY:}
+
+logging:
+  level:
+    com.semanticdocs: DEBUG
