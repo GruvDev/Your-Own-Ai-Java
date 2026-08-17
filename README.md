@@ -13,7 +13,7 @@ The vector search engine is written from scratch in Java. No FAISS, no Pinecone,
 [![Recall](https://img.shields.io/badge/recall%4010-1.000-success)](#benchmarks)
 [![Speedup](https://img.shields.io/badge/vs%20exact%20search-7.9x-blue)](#benchmarks)
 
-<img src="docs/screenshots/ask.png" alt="Asking a question and getting a cited answer" width="900">
+<img src="screenshots/ask.png" alt="Asking a question and getting a cited answer" width="900">
 
 </div>
 
@@ -45,19 +45,19 @@ Here, the search engine is a **hand-written HNSW graph in Java** — layered nav
 
 Drop files in and watch them move `PENDING → PROCESSING → READY`. The header strip shows the live vector count, edge count and graph depth, so the data structure is never hidden from the user.
 
-<img src="docs/screenshots/library-dark.png" alt="Document library with indexing status" width="900">
+<img src="screenshots/library-dark.png" alt="Document library with indexing status" width="900">
 
 ### Search by meaning
 
 Every result carries a call number — file, part, chunk id — and a relevance meter drawn as discrete ticks rather than a progress bar, because a similarity score is a measurement.
 
-<img src="docs/screenshots/search.png" alt="Semantic search results with relevance scores" width="900">
+<img src="screenshots/search.png" alt="Semantic search results with relevance scores" width="900">
 
 ### Ask, with citations
 
 Sources stream to the browser **before** the first token of the answer, so you can start reading the evidence while the model is still writing. Every inline `[1]` is clickable.
 
-<img src="docs/screenshots/ask.png" alt="RAG answer with numbered source citations" width="900">
+<img src="screenshots/ask.png" alt="RAG answer with numbered source citations" width="900">
 
 ### Light and dark
 
@@ -65,8 +65,8 @@ The whole theme is one block of CSS custom properties — no component rule is d
 
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/library-light.png" alt="Light theme"></td>
-<td width="50%"><img src="docs/screenshots/library-dark.png" alt="Dark theme"></td>
+<td width="50%"><img src="screenshots/library-light.png" alt="Light theme"></td>
+<td width="50%"><img src="screenshots/library-dark.png" alt="Dark theme"></td>
 </tr>
 <tr>
 <td align="center"><em>Light</em></td>
@@ -76,7 +76,7 @@ The whole theme is one block of CSS custom properties — no component rule is d
 
 ### Sign in
 
-<img src="docs/screenshots/login.png" alt="Sign in screen" width="440">
+<img src="screenshots/login.png" alt="Sign in screen" width="440">
 
 ---
 
